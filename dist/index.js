@@ -1,5 +1,7 @@
 "use strict";
 
+var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
 require("babel/polyfill");
 var _ = require("lodash");
 var should = require("should");
@@ -12,3 +14,7 @@ if (__DEV__) {
   Promise.longStackTraces();
   Error.stackTraceLimit = Infinity;
 }
+
+var MQDBProxy = _interopRequire(require("./MQDBProxy"));
+
+module.exports = MQDBProxy;

@@ -25,12 +25,15 @@
     "gulp-plumber": "^0.6.6",
     "gulp-sourcemaps": "^1.3.0",
     "gulp-util": "^3.0.3",
-    "jshint-stylish": "^1.0.0"
+    "jshint-stylish": "^1.0.0",
+    "pg": "^4.3.0",
+    "redis": "^0.12.1"
   },
   "dependencies": {
     "babel": "^4.3.0",
     "bluebird": "^2.9.9",
     "lodash": "^3.2.0",
+    "postgresql-tag": "^0.1.0",
     "should": "^5.0.0"
   }
 }
