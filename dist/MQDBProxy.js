@@ -4,8 +4,6 @@ var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["defau
 
 var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
 
-var _taggedTemplateLiteral = function (strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); };
-
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
@@ -23,7 +21,7 @@ if (__DEV__) {
   Error.stackTraceLimit = Infinity;
 }
 
-var sql = _interopRequire(require("postgresql-tag"));
+var pgFormat = _interopRequire(require("pg-format"));
 
 var MQDBProxy = (function () {
   function MQDBProxy(_ref) {
@@ -91,9 +89,15 @@ var MQDBProxy = (function () {
 
           var procedure = _ref2[0];
           var params = _ref2[1];
-          return _this.pg.queryAsync(sql(_taggedTemplateLiteral(["SELECT ", "("], ["SELECT ", "("]), procedure) + params.map(function (v) {
-            return sql(_taggedTemplateLiteral(["", ""], ["", ""]), v);
-          }).join(",") + ")");
+
+          var buildParams = [null];
+          buildParams.push(procedure);
+          var buildEntries = Object.keys(params).map(function (fieldName) {
+            buildParams.push(params[fieldName]);
+            return "%L";
+          }).join(",");
+          var queryFormat = pgFormat.withArray("SELECT actions_%s(" + buildEntries + ")", buildParams);
+          _this.pg.queryAsync(queryFormat);
         })["catch"](function (err) {
           if (__DEV__) {
             throw err;

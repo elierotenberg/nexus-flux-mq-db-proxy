@@ -1,4 +1,4 @@
-import sql from 'postgresql-tag';
+import pgFormat from 'pg-format';
 
 class MQDBProxy {
   constructor({ redisSub, redisPub, pg }, actions = {}) {
@@ -34,7 +34,16 @@ class MQDBProxy {
       return this.actions[action].call(null, query);
     })
     // invoke the procedure
-    .then(([procedure, params]) => this.pg.queryAsync(sql`SELECT ${procedure}(` + params.map((v) => sql`${v}`).join(',') + `)`))
+    .then(([procedure, params]) => {
+      const buildParams = [null];
+      buildParams.push(procedure);
+      const buildEntries = Object.keys(params).map((fieldName) => {
+        buildParams.push(params[fieldName]);
+        return `%L`;
+      }).join(',');
+      const queryFormat = pgFormat.withArray(`SELECT actions_%s(${buildEntries})`, buildParams);
+      this.pg.queryAsync(queryFormat);
+    })
     .catch((err) => {
       if(__DEV__) {
         throw err;
