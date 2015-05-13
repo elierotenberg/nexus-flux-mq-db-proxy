@@ -21,13 +21,17 @@ var Redis = _interopRequire(require("redis"));
 
 var Pg = _interopRequire(require("pg"));
 
+var express = _interopRequire(require("express"));
+
+var http = _interopRequire(require("http"));
+
 Promise.promisifyAll(Pg.Client.prototype);
 
-var pg = new Pg.Client("postgres://test:test@localhost/test");
+var pg = new Pg.Client("postgres://millenium_comments:b6gcxg6rxJy2@172.16.40.149/millenium_comments");
 var __VERSION__ = "v0_0_1";
 var redisSub = Redis.createClient(6379, "localhost");
 var redisPub = Redis.createClient(6379, "localhost");
-var uriCache = "http://www.varnish-cache.org/";
+var uriCache = "127.0.0.1:1337";
 
 var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache }, {
   doFooBar: function doFooBar(_ref) {
@@ -51,6 +55,11 @@ var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg, uriC
       return ["doBarFoo" + __VERSION__, [bar, foo]];
     });
   } });
+
+var app = express().purge("*", function (req, res) {
+  console.log("purge store " + req.url);
+});
+http.createServer(app).listen(1337);
 
 proxy.start().then(function () {
   console.log("MQDBProxy ready.");

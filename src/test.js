@@ -1,13 +1,16 @@
 import MQDBProxy from '../';
 import Redis from 'redis';
 import Pg from 'pg';
+import express from 'express';
+import http from 'http';
+
 Promise.promisifyAll(Pg.Client.prototype);
 
-const pg = new Pg.Client('postgres://test:test@localhost/test');
+const pg = new Pg.Client('postgres://millenium_comments:b6gcxg6rxJy2@172.16.40.149/millenium_comments');
 const __VERSION__ = 'v0_0_1';
 const redisSub = Redis.createClient(6379, 'localhost');
 const redisPub = Redis.createClient(6379, 'localhost');
-const uriCache = 'http://www.varnish-cache.org/';
+const uriCache = '127.0.0.1:1337';
 
 const proxy = new MQDBProxy({ redisSub, redisPub, pg, uriCache }, {
   doFooBar({ foo, bar }) {
@@ -26,6 +29,12 @@ const proxy = new MQDBProxy({ redisSub, redisPub, pg, uriCache }, {
     });
   },
 });
+
+const app = express()
+  .purge('*', (req, res) => {
+    console.log('purge store ' + req.url);
+  });
+http.createServer(app).listen(1337);
 
 proxy.start().then(() => {
   console.log('MQDBProxy ready.');

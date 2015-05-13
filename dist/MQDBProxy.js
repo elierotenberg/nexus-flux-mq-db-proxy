@@ -23,7 +23,7 @@ if (__DEV__) {
 
 var pgFormat = _interopRequire(require("pg-format"));
 
-var request = _interopRequire(require("request"));
+var http = _interopRequire(require("http"));
 
 var MQDBProxy = (function () {
   function MQDBProxy(_ref) {
@@ -116,10 +116,14 @@ var MQDBProxy = (function () {
         var message = payload.message;
 
         if (this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
-          request({
+          var uri = this.uriCache.split(":");
+          var options = {
+            hostname: uri[0],
+            port: uri[1],
             method: "PURGE",
-            uri: this.uriCache,
-            path: message.n });
+            path: message.n };
+          var req = http.request(options);
+          req.end();
         }
         this.redisPub.publish("update", payload);
       }
