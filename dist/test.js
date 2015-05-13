@@ -27,8 +27,9 @@ var pg = new Pg.Client("postgres://test:test@localhost/test");
 var __VERSION__ = "v0_0_1";
 var redisSub = Redis.createClient(6379, "localhost");
 var redisPub = Redis.createClient(6379, "localhost");
+var uriCache = "http://www.varnish-cache.org/";
 
-var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg }, {
+var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache }, {
   doFooBar: function doFooBar(_ref) {
     var foo = _ref.foo;
     var bar = _ref.bar;
@@ -58,9 +59,9 @@ proxy.start().then(function () {
     query: {
       foo: 42,
       bar: "fortytwo" } }));
-  proxy.mockRedisMessage(JSON.stringify({
-    action: "doBarFoo",
-    query: {
-      foo: 1337,
-      bar: 1337 } }));
+  proxy.mockPgNotify({
+    payload: {
+      message: {
+        n: "/name/store",
+        p: "patch remutable" } } });
 });

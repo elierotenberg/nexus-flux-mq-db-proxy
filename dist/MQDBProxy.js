@@ -23,16 +23,19 @@ if (__DEV__) {
 
 var pgFormat = _interopRequire(require("pg-format"));
 
+var request = _interopRequire(require("request"));
+
 var MQDBProxy = (function () {
   function MQDBProxy(_ref) {
     var redisSub = _ref.redisSub;
     var redisPub = _ref.redisPub;
     var pg = _ref.pg;
+    var uriCache = _ref.uriCache;
     var actions = arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, MQDBProxy);
 
-    Object.assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, actions: actions });
+    Object.assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache, actions: actions });
   }
 
   _createClass(MQDBProxy, {
@@ -110,7 +113,14 @@ var MQDBProxy = (function () {
     _handlePgNotify: {
       value: function _handlePgNotify(_ref) {
         var payload = _ref.payload;
+        var message = payload.message;
 
+        if (this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
+          request({
+            method: "PURGE",
+            uri: this.uriCache,
+            path: message.n });
+        }
         this.redisPub.publish("update", payload);
       }
     }

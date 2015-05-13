@@ -1,8 +1,9 @@
 import pgFormat from 'pg-format';
+import request from 'request';
 
 class MQDBProxy {
-  constructor({ redisSub, redisPub, pg }, actions = {}) {
-    Object.assign(this, { redisSub, redisPub, pg, actions });
+  constructor({ redisSub, redisPub, pg, uriCache }, actions = {}) {
+    Object.assign(this, { redisSub, redisPub, pg, uriCache, actions });
   }
 
   start() {
@@ -55,6 +56,14 @@ class MQDBProxy {
   }
 
   _handlePgNotify({ payload }) {
+    const { message } = payload;
+    if(this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
+      request({
+        method: 'PURGE',
+        uri: this.uriCache,
+        path: message.n,
+      });
+    }
     this.redisPub.publish('update', payload);
   }
 }
