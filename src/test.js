@@ -6,7 +6,7 @@ import http from 'http';
 
 Promise.promisifyAll(Pg.Client.prototype);
 
-const pg = new Pg.Client('postgres://millenium_comments:b6gcxg6rxJy2@172.16.40.149/millenium_comments');
+const pg = new Pg.Client('test:test@localhost/test');
 const __VERSION__ = 'v0_0_1';
 const redisSub = Redis.createClient(6379, 'localhost');
 const redisPub = Redis.createClient(6379, 'localhost');
