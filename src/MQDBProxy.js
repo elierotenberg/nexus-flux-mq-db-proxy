@@ -1,7 +1,7 @@
 import pgFormat from 'pg-format';
 
 const TIMEOUT = 1000;
-const REGEX = /^(-?[0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
+const REGEX = /^([0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
 
 class MQDBProxy {
   constructor({ redisSub, redisPub, pg }, actions = {}) {
@@ -61,22 +61,24 @@ class MQDBProxy {
   _handlePgNotify({ payload }) {
     const result = REGEX.exec(payload);
     if(result) {
-      const [hash, part, total, data] = result.slice(1);
-      if(this.multipartPayloads[hash] === void 0) {
-        this.multipartPayloads[hash] = {
+      const [id, part, total, data] = result.slice(1);
+      if(this.multipartPayloads[id] === void 0) {
+        this.multipartPayloads[id] = {
           total: +total,
-          revieved: 0,
+          recieved: 0,
           parts: [],
           timeout: null,
         };
       }
       clearTimeout(multipartPayload.timeout);
-      const multipartPayload = this.multipartPayloads[hash];
-      multipartPayload.timeout = setTimeout(() => delete this.multipartPayloads[hash], TIMEOUT);
-      multipartPayload.revieved = multipartPayload.revieved + 1;
+      const multipartPayload = this.multipartPayloads[id];
+      multipartPayload.timeout = setTimeout(() => delete this.multipartPayloads[id], TIMEOUT);
+      multipartPayload.recieved = multipartPayload.recieved + 1;
       multipartPayload.parts[part - 1] = data;
-      if(multipartPayload.revieved === multipartPayload.total) {
+      if(multipartPayload.recieved === multipartPayload.total) {
         this.redisPub.publish('update', multipartPayload.parts.join(''));
+        clearTimeout(multipartPayload.timeout);
+        delete this.multipartPayloads[id];
       }
     } else {
       this.redisPub.publish('update', payload);
