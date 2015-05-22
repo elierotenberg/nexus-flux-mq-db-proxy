@@ -27,7 +27,7 @@ var http = _interopRequire(require("http"));
 
 Promise.promisifyAll(Pg.Client.prototype);
 
-var pg = new Pg.Client("postgres://millenium_comments:b6gcxg6rxJy2@172.16.40.149/millenium_comments");
+var pg = new Pg.Client("postgres://test:test@localhost/test");
 var __VERSION__ = "v0_0_1";
 var redisSub = Redis.createClient(6379, "localhost");
 var redisPub = Redis.createClient(6379, "localhost");
