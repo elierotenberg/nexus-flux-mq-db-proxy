@@ -23,16 +23,23 @@ if (__DEV__) {
 
 var pgFormat = _interopRequire(require("pg-format"));
 
+var http = _interopRequire(require("http"));
+
+var TIMEOUT = 1000;
+var REGEX = /^([0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
+
 var MQDBProxy = (function () {
   function MQDBProxy(_ref) {
     var redisSub = _ref.redisSub;
     var redisPub = _ref.redisPub;
     var pg = _ref.pg;
+    var uriCache = _ref.uriCache;
     var actions = arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, MQDBProxy);
 
-    Object.assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, actions: actions });
+    Object.assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache, actions: actions });
+    this.multipartPayloads = {};
   }
 
   _createClass(MQDBProxy, {
@@ -109,9 +116,58 @@ var MQDBProxy = (function () {
     },
     _handlePgNotify: {
       value: function _handlePgNotify(_ref) {
-        var payload = _ref.payload;
+        var _this = this;
 
-        this.redisPub.publish("update", payload);
+        var payload = _ref.payload;
+        var message = payload.message;
+
+        if (this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
+          var uri = this.uriCache.split(":");
+          var options = {
+            hostname: uri[0],
+            port: uri[1],
+            method: "PURGE",
+            path: message.n };
+          var req = http.request(options);
+          req.end();
+        }
+        var result = REGEX.exec(payload);
+        if (result) {
+          var _result$slice;
+
+          var _result$slice2;
+
+          (function () {
+            _result$slice = result.slice(1);
+            _result$slice2 = _slicedToArray(_result$slice, 4);
+            var id = _result$slice2[0];
+            var part = _result$slice2[1];
+            var total = _result$slice2[2];
+            var data = _result$slice2[3];
+
+            if (_this.multipartPayloads[id] === void 0) {
+              _this.multipartPayloads[id] = {
+                total: +total,
+                recieved: 0,
+                parts: [],
+                timeout: null };
+            }
+            var multipartPayload = _this.multipartPayloads[id];
+            clearTimeout(multipartPayload.timeout);
+            multipartPayload.timeout = setTimeout(function () {
+              return delete _this.multipartPayloads[id];
+            }, TIMEOUT);
+            multipartPayload.recieved = multipartPayload.recieved + 1;
+            multipartPayload.parts[part - 1] = data;
+            if (multipartPayload.recieved === multipartPayload.total) {
+              _this.redisPub.publish("update", multipartPayload.parts.join(""));
+              clearTimeout(multipartPayload.timeout);
+              delete _this.multipartPayloads[id];
+            }
+          })();
+        } else {
+          this.redisPub.publish("update", payload);
+        }
       }
     }
   });

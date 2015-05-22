@@ -21,14 +21,19 @@ var Redis = _interopRequire(require("redis"));
 
 var Pg = _interopRequire(require("pg"));
 
+var express = _interopRequire(require("express"));
+
+var http = _interopRequire(require("http"));
+
 Promise.promisifyAll(Pg.Client.prototype);
 
 var pg = new Pg.Client("postgres://test:test@localhost/test");
 var __VERSION__ = "v0_0_1";
 var redisSub = Redis.createClient(6379, "localhost");
 var redisPub = Redis.createClient(6379, "localhost");
+var uriCache = "127.0.0.1:1337";
 
-var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg }, {
+var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache }, {
   doFooBar: function doFooBar(_ref) {
     var foo = _ref.foo;
     var bar = _ref.bar;
@@ -51,6 +56,11 @@ var proxy = new MQDBProxy({ redisSub: redisSub, redisPub: redisPub, pg: pg }, {
     });
   } });
 
+var app = express().purge("*", function (req, res) {
+  console.log("purge store " + req.url);
+});
+http.createServer(app).listen(1337);
+
 proxy.start().then(function () {
   console.log("MQDBProxy ready.");
   proxy.mockRedisMessage(JSON.stringify({
@@ -58,9 +68,6 @@ proxy.start().then(function () {
     query: {
       foo: 42,
       bar: "fortytwo" } }));
-  proxy.mockRedisMessage(JSON.stringify({
-    action: "doBarFoo",
-    query: {
-      foo: 1337,
-      bar: 1337 } }));
+  proxy.mockPgNotify({
+    payload: "{\"message\": {\"n\": \"/name/store\",\"p\": \"patch: remutable\"}}" });
 });
