@@ -20,7 +20,8 @@
     "del": "^1.1.1",
     "express": "^4.12.2",
     "gulp": "^3.8.11",
-    "gulp-babel": "^4.0.0",
+    "gulp-babel": "^5.1.0",
+    "gulp-eslint": "^0.12.0",
     "gulp-insert": "^0.4.0",
     "gulp-jshint": "^1.9.2",
     "gulp-plumber": "^0.6.6",
@@ -32,7 +33,10 @@
   },
   "dependencies": {
     "babel": "^4.3.0",
+    "babel-eslint": "^3.1.6",
+    "babel-runtime": "^5.4.7",
     "bluebird": "^2.9.9",
+    "eslint-plugin-react": "^2.3.0",
     "lodash": "^3.2.0",
     "pg-format": "^0.1.4",
     "should": "^5.0.0"

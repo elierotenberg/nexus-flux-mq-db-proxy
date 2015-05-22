@@ -1,4 +1,3 @@
-require('babel/polyfill');
 var _ = require('lodash');
 var should = require('should');
 var Promise = (global || window).Promise = require('bluebird');
@@ -12,22 +11,21 @@ if(__DEV__) {
 
 var del = require('del');
 var babel = require('gulp-babel');
+var eslint = require('gulp-eslint');
 var fs = Promise.promisifyAll(require('fs'));
 var gulp = require('gulp');
 var gutil = require('gulp-util');
-var jshint = require('gulp-jshint');
 var plumber = require('gulp-plumber');
 var prepend = require('gulp-insert').prepend;
 var sourcemaps = require('gulp-sourcemaps');
-var stylish = require('jshint-stylish');
 
 var readPrelude = fs.readFileAsync('./__prelude.js');
 
 function lint() {
   return gulp.src('src/**/*.js')
   .pipe(plumber())
-  .pipe(jshint())
-  .pipe(jshint.reporter(stylish));
+  .pipe(eslint())
+  .pipe(eslint.format());
 }
 
 function build() {
@@ -37,6 +35,7 @@ function build() {
     .pipe(prepend(prelude))
     .pipe(babel({
       modules: 'common',
+      optional: ['runtime'],
     }))
     .pipe(gulp.dest('dist'));
   });
@@ -46,16 +45,7 @@ function clean() {
   del(['dist']);
 }
 
-gulp.task('lint', function() {
-  return lint();
-});
-
-gulp.task('clean', function() {
-  return clean();
-});
-
-gulp.task('build', ['lint', 'clean'], function() {
-  return build();
-});
-
+gulp.task('lint', lint);
+gulp.task('clean', clean);
+gulp.task('build', ['lint', 'clean'], build);
 gulp.task('default', ['build']);
