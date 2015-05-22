@@ -70,8 +70,8 @@ class MQDBProxy {
           timeout: null,
         };
       }
-      clearTimeout(multipartPayload.timeout);
       const multipartPayload = this.multipartPayloads[id];
+      clearTimeout(multipartPayload.timeout);
       multipartPayload.timeout = setTimeout(() => delete this.multipartPayloads[id], TIMEOUT);
       multipartPayload.recieved = multipartPayload.recieved + 1;
       multipartPayload.parts[part - 1] = data;
