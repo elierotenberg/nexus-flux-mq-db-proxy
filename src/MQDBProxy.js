@@ -93,7 +93,8 @@ class MQDBProxy {
         clearTimeout(multipartPayload.timeout);
         delete this.multipartPayloads[id];
       }
-    } else {
+    }
+    else {
       this.redisPub.publish('update', payload);
     }
   }

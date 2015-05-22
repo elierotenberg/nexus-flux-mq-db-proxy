@@ -1,29 +1,42 @@
-"use strict";
+'use strict';
 
-var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+var _createClass = require('babel-runtime/helpers/create-class')['default'];
 
-var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
+var _classCallCheck = require('babel-runtime/helpers/class-call-check')['default'];
 
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+var _slicedToArray = require('babel-runtime/helpers/sliced-to-array')['default'];
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+var _Object$defineProperty = require('babel-runtime/core-js/object/define-property')['default'];
 
-require("babel/polyfill");
-var _ = require("lodash");
-var should = require("should");
-var Promise = (global || window).Promise = require("bluebird");
-var __DEV__ = process.env.NODE_ENV !== "production";
+var _Object$assign = require('babel-runtime/core-js/object/assign')['default'];
+
+var _Object$keys = require('babel-runtime/core-js/object/keys')['default'];
+
+var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+
+_Object$defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _pgFormat = require('pg-format');
+
+var _pgFormat2 = _interopRequireDefault(_pgFormat);
+
+var _http = require('http');
+
+var _http2 = _interopRequireDefault(_http);
+
+var _ = require('lodash');
+var should = require('should');
+var Promise = (global || window).Promise = require('bluebird');
+var __DEV__ = process.env.NODE_ENV !== 'production';
 var __PROD__ = !__DEV__;
-var __BROWSER__ = typeof window === "object";
+var __BROWSER__ = typeof window === 'object';
 var __NODE__ = !__BROWSER__;
 if (__DEV__) {
   Promise.longStackTraces();
   Error.stackTraceLimit = Infinity;
 }
-
-var pgFormat = _interopRequire(require("pg-format"));
-
-var http = _interopRequire(require("http"));
 
 var TIMEOUT = 1000;
 var REGEX = /^([0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
@@ -38,147 +51,145 @@ var MQDBProxy = (function () {
 
     _classCallCheck(this, MQDBProxy);
 
-    Object.assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache, actions: actions });
+    _Object$assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache, actions: actions });
     this.multipartPayloads = {};
   }
 
-  _createClass(MQDBProxy, {
-    start: {
-      value: function start() {
-        var _this = this;
+  _createClass(MQDBProxy, [{
+    key: 'start',
+    value: function start() {
+      var _this = this;
 
-        return Promise["try"](function () {
-          _this.redisSub.subscribe("action");
-          _this.redisSub.on("message", function (channel, message) {
-            return _this._handleRedisMessage(message);
-          });
-        }).then(function () {
-          return _this.pg.connectAsync();
-        }).then(function () {
-          return _this.pg.on("notification", function (message) {
-            return _this._handlePgNotify(message);
-          });
-        }).then(function () {
-          return _this.pg.queryAsync("LISTEN watchers");
+      return Promise['try'](function () {
+        _this.redisSub.subscribe('action');
+        _this.redisSub.on('message', function (channel, message) {
+          return _this._handleRedisMessage(message);
         });
-      }
-    },
-    mockRedisMessage: {
-      value: function mockRedisMessage(message) {
-        return this._handleRedisMessage(message);
-      }
-    },
-    mockPgNotify: {
-      value: function mockPgNotify(message) {
-        return this._handlePgNotify(message);
-      }
-    },
-    _handleRedisMessage: {
-      value: function _handleRedisMessage(message) {
-        var _this = this;
-
-        return Promise["try"](function () {
-          var _JSON$parse = JSON.parse(message);
-
-          var action = _JSON$parse.action;
-          var query = _JSON$parse.query;
-
-          if (_this.actions[action] === void 0) {
-            throw new Error("Unknown action: " + action);
-          }
-          // validate the query and maybe get the procedure to invoke and its params
-          // async by default
-          return _this.actions[action].call(null, query);
-        })
-        // invoke the procedure
-        .then(function (_ref) {
-          var _ref2 = _slicedToArray(_ref, 2);
-
-          var procedure = _ref2[0];
-          var params = _ref2[1];
-
-          var buildParams = [null];
-          buildParams.push(procedure);
-          var buildEntries = Object.keys(params).map(function (fieldName) {
-            buildParams.push(params[fieldName]);
-            return "%L";
-          }).join(",");
-          var queryFormat = pgFormat.withArray("SELECT actions_%s(" + buildEntries + ")", buildParams);
-          _this.pg.queryAsync(queryFormat);
-        })["catch"](function (err) {
-          if (__DEV__) {
-            throw err;
-          } else {
-            console.error(err);
-          }
+      }).then(function () {
+        return _this.pg.connectAsync();
+      }).then(function () {
+        return _this.pg.on('notification', function (message) {
+          return _this._handlePgNotify(message);
         });
-      }
-    },
-    _handlePgNotify: {
-      value: function _handlePgNotify(_ref) {
-        var _this = this;
+      }).then(function () {
+        return _this.pg.queryAsync('LISTEN watchers');
+      });
+    }
+  }, {
+    key: 'mockRedisMessage',
+    value: function mockRedisMessage(message) {
+      return this._handleRedisMessage(message);
+    }
+  }, {
+    key: 'mockPgNotify',
+    value: function mockPgNotify(message) {
+      return this._handlePgNotify(message);
+    }
+  }, {
+    key: '_handleRedisMessage',
+    value: function _handleRedisMessage(message) {
+      var _this2 = this;
 
-        var payload = _ref.payload;
-        var message = payload.message;
+      return Promise['try'](function () {
+        var _JSON$parse = JSON.parse(message);
 
-        if (this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
-          var uri = this.uriCache.split(":");
-          var options = {
-            hostname: uri[0],
-            port: uri[1],
-            method: "PURGE",
-            path: message.n };
-          var req = http.request(options);
-          req.end();
+        var action = _JSON$parse.action;
+        var query = _JSON$parse.query;
+
+        if (_this2.actions[action] === void 0) {
+          throw new Error('Unknown action: ' + action);
         }
-        var result = REGEX.exec(payload);
-        if (result) {
-          var _result$slice;
+        // validate the query and maybe get the procedure to invoke and its params
+        // async by default
+        return _this2.actions[action].call(null, query);
+      })
+      // invoke the procedure
+      .then(function (_ref2) {
+        var _ref22 = _slicedToArray(_ref2, 2);
 
-          var _result$slice2;
+        var procedure = _ref22[0];
+        var params = _ref22[1];
 
-          (function () {
-            _result$slice = result.slice(1);
-            _result$slice2 = _slicedToArray(_result$slice, 4);
-            var id = _result$slice2[0];
-            var part = _result$slice2[1];
-            var total = _result$slice2[2];
-            var data = _result$slice2[3];
-
-            if (_this.multipartPayloads[id] === void 0) {
-              _this.multipartPayloads[id] = {
-                total: +total,
-                recieved: 0,
-                parts: [],
-                timeout: null };
-            }
-            var multipartPayload = _this.multipartPayloads[id];
-            clearTimeout(multipartPayload.timeout);
-            multipartPayload.timeout = setTimeout(function () {
-              return delete _this.multipartPayloads[id];
-            }, TIMEOUT);
-            multipartPayload.recieved = multipartPayload.recieved + 1;
-            multipartPayload.parts[part - 1] = data;
-            if (multipartPayload.recieved === multipartPayload.total) {
-              _this.redisPub.publish("update", multipartPayload.parts.join(""));
-              clearTimeout(multipartPayload.timeout);
-              delete _this.multipartPayloads[id];
-            }
-          })();
+        var buildParams = [null];
+        buildParams.push(procedure);
+        var buildEntries = _Object$keys(params).map(function (fieldName) {
+          buildParams.push(params[fieldName]);
+          return '%L';
+        }).join(',');
+        var queryFormat = _pgFormat2['default'].withArray('SELECT actions_%s(' + buildEntries + ')', buildParams);
+        _this2.pg.queryAsync(queryFormat);
+      })['catch'](function (err) {
+        if (__DEV__) {
+          throw err;
         } else {
-          this.redisPub.publish("update", payload);
+          console.error(err);
         }
+      });
+    }
+  }, {
+    key: '_handlePgNotify',
+    value: function _handlePgNotify(_ref3) {
+      var _this3 = this;
+
+      var payload = _ref3.payload;
+      var message = payload.message;
+
+      if (this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
+        var uri = this.uriCache.split(':');
+        var options = {
+          hostname: uri[0],
+          port: uri[1],
+          method: 'PURGE',
+          path: message.n };
+        var req = _http2['default'].request(options);
+        req.end();
+      }
+      var result = REGEX.exec(payload);
+      if (result) {
+        (function () {
+          var _result$slice = result.slice(1);
+
+          var _result$slice2 = _slicedToArray(_result$slice, 4);
+
+          var id = _result$slice2[0];
+          var part = _result$slice2[1];
+          var total = _result$slice2[2];
+          var data = _result$slice2[3];
+
+          if (_this3.multipartPayloads[id] === void 0) {
+            _this3.multipartPayloads[id] = {
+              total: +total,
+              recieved: 0,
+              parts: [],
+              timeout: null };
+          }
+          var multipartPayload = _this3.multipartPayloads[id];
+          clearTimeout(multipartPayload.timeout);
+          multipartPayload.timeout = setTimeout(function () {
+            return delete _this3.multipartPayloads[id];
+          }, TIMEOUT);
+          multipartPayload.recieved = multipartPayload.recieved + 1;
+          multipartPayload.parts[part - 1] = data;
+          if (multipartPayload.recieved === multipartPayload.total) {
+            _this3.redisPub.publish('update', multipartPayload.parts.join(''));
+            clearTimeout(multipartPayload.timeout);
+            delete _this3.multipartPayloads[id];
+          }
+        })();
+      } else {
+        this.redisPub.publish('update', payload);
       }
     }
-  });
+  }]);
 
   return MQDBProxy;
 })();
 
-Object.assign(MQDBProxy.prototype, {
+_Object$assign(MQDBProxy.prototype, {
   redisSub: null,
   redisPub: null,
   pg: null,
   actions: null });
 
-module.exports = MQDBProxy;
+exports['default'] = MQDBProxy;
+module.exports = exports['default'];
