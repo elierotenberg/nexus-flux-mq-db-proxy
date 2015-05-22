@@ -152,8 +152,8 @@ var MQDBProxy = (function () {
                 parts: [],
                 timeout: null };
             }
-            clearTimeout(multipartPayload.timeout);
             var multipartPayload = _this.multipartPayloads[id];
+            clearTimeout(multipartPayload.timeout);
             multipartPayload.timeout = setTimeout(function () {
               return delete _this.multipartPayloads[id];
             }, TIMEOUT);
