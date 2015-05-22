@@ -69,8 +69,5 @@ proxy.start().then(function () {
       foo: 42,
       bar: "fortytwo" } }));
   proxy.mockPgNotify({
-    payload: {
-      message: {
-        n: "/name/store",
-        p: "patch remutable" } } });
+    payload: "{\"message\": {\"n\": \"/name/store\",\"p\": \"patch: remutable\"}}" });
 });

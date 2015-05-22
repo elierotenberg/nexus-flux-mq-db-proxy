@@ -46,11 +46,6 @@ proxy.start().then(() => {
     },
   }));
   proxy.mockPgNotify({
-    payload: {
-      message: {
-        n: '/name/store',
-        p: 'patch remutable',
-      },
-    },
+    payload: '{"message": {"n": "/name/store","p": "patch: remutable"}}',
   });
 });
