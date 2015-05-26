@@ -1,6 +1,6 @@
 {
   "name": "nexus-flux-mq-db-proxy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -35,7 +35,6 @@
     "babel-runtime": "^5.4.7",
     "eslint-plugin-react": "^2.3.0",
     "pg-format": "^0.1.4",
-    "babel-runtime": "^5.4.7",
     "bluebird": "^2.9.26",
     "lodash": "^3.9.3",
     "should": "^6.0.3"
