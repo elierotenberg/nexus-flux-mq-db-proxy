@@ -5,8 +5,8 @@ const TIMEOUT = 1000;
 const REGEX = /^([0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
 
 class MQDBProxy {
-  constructor({ redisSub, redisPub, pg, uriCache }, actions = {}) {
-    Object.assign(this, { redisSub, redisPub, pg, uriCache, actions });
+  constructor({ redisSub, redisPub, pg, urlCache }, actions = {}) {
+    Object.assign(this, { redisSub, redisPub, pg, urlCache, actions });
     this.multipartPayloads = {};
   }
 
@@ -61,11 +61,9 @@ class MQDBProxy {
 
   _handlePgNotify({ payload }) {
     const { message } = payload;
-    if(this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
-      const uri = this.uriCache.split(':');
+    if(this.urlCache !== void 0 && this.urlCache !== null && message !== void 0 && message !== null) {
       const options = {
-        hostname: uri[0],
-        port: uri[1],
+        hostname: this.urlCache,
         method: 'PURGE',
         path: message.n,
       };
