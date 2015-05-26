@@ -40,9 +40,9 @@ var pg = new _pg2['default'].Client('postgres://test:test@localhost/test');
 var __VERSION__ = 'v0_0_1';
 var redisSub = _redis2['default'].createClient(6379, 'localhost');
 var redisPub = _redis2['default'].createClient(6379, 'localhost');
-var uriCache = '127.0.0.1:1337';
+var urlCache = 'http://www.test.com';
 
-var proxy = new _3['default']({ redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache }, {
+var proxy = new _3['default']({ redisSub: redisSub, redisPub: redisPub, pg: pg, urlCache: urlCache }, {
   doFooBar: function doFooBar(_ref) {
     var foo = _ref.foo;
     var bar = _ref.bar;
@@ -68,7 +68,7 @@ var proxy = new _3['default']({ redisSub: redisSub, redisPub: redisPub, pg: pg, 
 var app = (0, _express2['default'])().purge('*', function (req, res) {
   console.log('purge store ' + req.url);
 });
-_http2['default'].createServer(app).listen(1337);
+_http2['default'].createServer(app);
 
 proxy.start().then(function () {
   console.log('MQDBProxy ready.');

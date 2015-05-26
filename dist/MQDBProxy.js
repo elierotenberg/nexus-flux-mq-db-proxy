@@ -46,12 +46,12 @@ var MQDBProxy = (function () {
     var redisSub = _ref.redisSub;
     var redisPub = _ref.redisPub;
     var pg = _ref.pg;
-    var uriCache = _ref.uriCache;
+    var urlCache = _ref.urlCache;
     var actions = arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, MQDBProxy);
 
-    _Object$assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, uriCache: uriCache, actions: actions });
+    _Object$assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, urlCache: urlCache, actions: actions });
     this.multipartPayloads = {};
   }
 
@@ -134,11 +134,9 @@ var MQDBProxy = (function () {
       var payload = _ref3.payload;
       var message = payload.message;
 
-      if (this.uriCache !== void 0 && this.uriCache !== null && message !== void 0 && message !== null) {
-        var uri = this.uriCache.split(':');
+      if (this.urlCache !== void 0 && this.urlCache !== null && message !== void 0 && message !== null) {
         var options = {
-          hostname: uri[0],
-          port: uri[1],
+          hostname: this.urlCache,
           method: 'PURGE',
           path: message.n };
         var req = _http2['default'].request(options);
