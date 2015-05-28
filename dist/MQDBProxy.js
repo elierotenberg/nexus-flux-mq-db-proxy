@@ -66,7 +66,9 @@ var MQDBProxy = (function () {
       return Promise['try'](function () {
         _this.redisSub.subscribe(_this.actionChannel);
         _this.redisSub.on('message', function (channel, message) {
-          return _this._handleRedisMessage(message);
+          if (channel === _this.actionChannel) {
+            _this._handleRedisMessage(message);
+          }
         });
       }).then(function () {
         return _this.pg.connectAsync();

@@ -17,7 +17,7 @@ class MQDBProxy {
       this.redisSub.subscribe(this.actionChannel);
       this.redisSub.on('message', (channel, message) => {
         if(channel === this.actionChannel) {
-          this._handleRedisMessage(message)
+          this._handleRedisMessage(message);
         }
       });
     })
