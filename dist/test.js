@@ -65,7 +65,7 @@ var proxy = new _3['default']({ redisSub: redisSub, redisPub: redisPub, pg: pg, 
     });
   } });
 
-var app = (0, _express2['default'])().purge('*', function (req, res) {
+var app = (0, _express2['default'])().purge('*', function (req) {
   console.log('purge store ' + req.url);
 });
 _http2['default'].createServer(app);

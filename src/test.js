@@ -31,7 +31,7 @@ const proxy = new MQDBProxy({ redisSub, redisPub, pg, urlCache }, {
 });
 
 const app = express()
-  .purge('*', (req, res) => {
+  .purge('*', (req) => {
     console.log('purge store ' + req.url);
   });
 http.createServer(app);
