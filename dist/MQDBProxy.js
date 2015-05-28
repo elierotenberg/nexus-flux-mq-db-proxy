@@ -121,8 +121,6 @@ var MQDBProxy = (function () {
       })['catch'](function (err) {
         if (__DEV__) {
           throw err;
-        } else {
-          console.error(err);
         }
       });
     }

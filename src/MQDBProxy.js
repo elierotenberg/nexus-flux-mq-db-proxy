@@ -53,9 +53,6 @@ class MQDBProxy {
       if(__DEV__) {
         throw err;
       }
-      else {
-        console.error(err);
-      }
     });
   }
 
