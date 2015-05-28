@@ -11,8 +11,9 @@ const __VERSION__ = 'v0_0_1';
 const redisSub = Redis.createClient(6379, 'localhost');
 const redisPub = Redis.createClient(6379, 'localhost');
 const urlCache = 'http://www.test.com';
+const channel = 'test';
 
-const proxy = new MQDBProxy({ redisSub, redisPub, pg, urlCache }, {
+const proxy = new MQDBProxy({ redisSub, redisPub, pg, channel, urlCache }, {
   doFooBar({ foo, bar }) {
     return Promise.try(() => {
       // some preconditions which can be async

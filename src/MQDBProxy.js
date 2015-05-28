@@ -5,14 +5,16 @@ const TIMEOUT = 1000;
 const REGEX = /^([0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
 
 class MQDBProxy {
-  constructor({ redisSub, redisPub, pg, urlCache }, actions = {}) {
-    Object.assign(this, { redisSub, redisPub, pg, urlCache, actions });
+  constructor({ redisSub, redisPub, pg, channel, urlCache }, actions = {}) {
+    Object.assign(this, { redisSub, redisPub, pg, channel, urlCache, actions });
     this.multipartPayloads = {};
+    this.actionChannel = `action_${channel}`;
+    this.updateChannel = `update_${channel}`;
   }
 
   start() {
     return Promise.try(() => {
-      this.redisSub.subscribe('action');
+      this.redisSub.subscribe(this.actionChannel);
       this.redisSub.on('message', (channel, message) => this._handleRedisMessage(message));
     })
     .then(() => this.pg.connectAsync())
@@ -84,13 +86,13 @@ class MQDBProxy {
       multipartPayload.recieved = multipartPayload.recieved + 1;
       multipartPayload.parts[part - 1] = data;
       if(multipartPayload.recieved === multipartPayload.total) {
-        this.redisPub.publish('update', multipartPayload.parts.join(''));
+        this.redisPub.publish(this.updateChannel, multipartPayload.parts.join(''));
         clearTimeout(multipartPayload.timeout);
         delete this.multipartPayloads[id];
       }
     }
     else {
-      this.redisPub.publish('update', payload);
+      this.redisPub.publish(this.updateChannel, payload);
     }
   }
 }
@@ -100,6 +102,8 @@ Object.assign(MQDBProxy.prototype, {
   redisPub: null,
   pg: null,
   actions: null,
+  channel: null,
+  urlCache: null,
 });
 
 export default MQDBProxy;
