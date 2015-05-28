@@ -15,7 +15,11 @@ class MQDBProxy {
   start() {
     return Promise.try(() => {
       this.redisSub.subscribe(this.actionChannel);
-      this.redisSub.on('message', (channel, message) => this._handleRedisMessage(message));
+      this.redisSub.on('message', (channel, message) => {
+        if(channel === this.actionChannel) {
+          this._handleRedisMessage(message)
+        }
+      });
     })
     .then(() => this.pg.connectAsync())
     .then(() => this.pg.on('notification', (message) => this._handlePgNotify(message)))
