@@ -46,13 +46,16 @@ var MQDBProxy = (function () {
     var redisSub = _ref.redisSub;
     var redisPub = _ref.redisPub;
     var pg = _ref.pg;
+    var channel = _ref.channel;
     var urlCache = _ref.urlCache;
     var actions = arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, MQDBProxy);
 
-    _Object$assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, urlCache: urlCache, actions: actions });
+    _Object$assign(this, { redisSub: redisSub, redisPub: redisPub, pg: pg, channel: channel, urlCache: urlCache, actions: actions });
     this.multipartPayloads = {};
+    this.actionChannel = 'action_' + channel;
+    this.updateChannel = 'update_' + channel;
   }
 
   _createClass(MQDBProxy, [{
@@ -61,7 +64,7 @@ var MQDBProxy = (function () {
       var _this = this;
 
       return Promise['try'](function () {
-        _this.redisSub.subscribe('action');
+        _this.redisSub.subscribe(_this.actionChannel);
         _this.redisSub.on('message', function (channel, message) {
           return _this._handleRedisMessage(message);
         });
@@ -167,13 +170,13 @@ var MQDBProxy = (function () {
           multipartPayload.recieved = multipartPayload.recieved + 1;
           multipartPayload.parts[part - 1] = data;
           if (multipartPayload.recieved === multipartPayload.total) {
-            _this3.redisPub.publish('update', multipartPayload.parts.join(''));
+            _this3.redisPub.publish(_this3.updateChannel, multipartPayload.parts.join(''));
             clearTimeout(multipartPayload.timeout);
             delete _this3.multipartPayloads[id];
           }
         })();
       } else {
-        this.redisPub.publish('update', payload);
+        this.redisPub.publish(this.updateChannel, payload);
       }
     }
   }]);
@@ -185,7 +188,9 @@ _Object$assign(MQDBProxy.prototype, {
   redisSub: null,
   redisPub: null,
   pg: null,
-  actions: null });
+  actions: null,
+  channel: null,
+  urlCache: null });
 
 exports['default'] = MQDBProxy;
 module.exports = exports['default'];

@@ -41,8 +41,9 @@ var __VERSION__ = 'v0_0_1';
 var redisSub = _redis2['default'].createClient(6379, 'localhost');
 var redisPub = _redis2['default'].createClient(6379, 'localhost');
 var urlCache = 'http://www.test.com';
+var channel = 'test';
 
-var proxy = new _3['default']({ redisSub: redisSub, redisPub: redisPub, pg: pg, urlCache: urlCache }, {
+var proxy = new _3['default']({ redisSub: redisSub, redisPub: redisPub, pg: pg, channel: channel, urlCache: urlCache }, {
   doFooBar: function doFooBar(_ref) {
     var foo = _ref.foo;
     var bar = _ref.bar;
