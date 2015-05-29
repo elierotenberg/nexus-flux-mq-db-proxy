@@ -135,8 +135,8 @@ var MQDBProxy = (function () {
       var _this3 = this;
 
       var payload = _ref3.payload;
-      var message = payload.message;
 
+      var message = JSON.parse(payload);
       if (this.urlCache !== void 0 && this.urlCache !== null && message !== void 0 && message !== null) {
         var options = {
           hostname: this.urlCache,
