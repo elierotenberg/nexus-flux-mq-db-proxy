@@ -1,10 +1,14 @@
+const { describe, it } = global;
 import MQDBProxy from '../';
 import Redis from 'redis';
 import Pg from 'pg';
 import express from 'express';
 import http from 'http';
+import Promise from 'bluebird';
 
 Promise.promisifyAll(Pg.Client.prototype);
+
+describe('NO TESTS IMPLEMENTED', () => process.exit(0));
 
 const pg = new Pg.Client('postgres://test:test@localhost/test');
 const __VERSION__ = 'v0_0_1';
@@ -32,13 +36,10 @@ const proxy = new MQDBProxy({ redisSub, redisPub, pg, channel, urlCache }, {
 });
 
 const app = express()
-  .purge('*', (req) => {
-    console.log('purge store ' + req.url);
-  });
+  .purge('*', (req) => void 0)
 http.createServer(app);
 
 proxy.start().then(() => {
-  console.log('MQDBProxy ready.');
   proxy.mockRedisMessage(JSON.stringify({
     action: 'doFooBar',
     query: {

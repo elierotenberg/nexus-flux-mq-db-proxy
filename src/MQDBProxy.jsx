@@ -1,10 +1,21 @@
 import pgFormat from 'pg-format';
 import http from 'http';
+import _ from 'lodash';
+import Promise from 'bluebird';
+const __DEV__ = process.env.NODE_ENV === 'development';
 
 const TIMEOUT = 1000;
 const REGEX = /^([0-9]*)#([0-9]*)\/([0-9]*)#(.*)/;
 
 class MQDBProxy {
+
+  redisSub = null;
+  redisPub = null;
+  pg = null;
+  actions = null;
+  channel = null;
+  urlCache = null;
+
   constructor({ redisSub, redisPub, pg, channel, urlCache }, actions = {}) {
     Object.assign(this, { redisSub, redisPub, pg, channel, urlCache, actions });
     this.multipartPayloads = {};
@@ -100,14 +111,5 @@ class MQDBProxy {
     }
   }
 }
-
-Object.assign(MQDBProxy.prototype, {
-  redisSub: null,
-  redisPub: null,
-  pg: null,
-  actions: null,
-  channel: null,
-  urlCache: null,
-});
 
 export default MQDBProxy;
