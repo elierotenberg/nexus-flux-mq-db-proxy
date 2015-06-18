@@ -87,16 +87,6 @@ class MQDBProxy {
   }
 
   _handlePgNotify({ payload }) {
-    const message = JSON.parse(payload);
-    if(this.urlCache !== void 0 && this.urlCache !== null && message !== void 0 && message !== null) {
-      const options = {
-        hostname: this.urlCache,
-        method: 'PURGE',
-        path: message.n,
-      };
-      const req = http.request(options);
-      req.end();
-    }
     const result = REGEX.exec(payload);
     if(result) {
       const [id, part, total, data] = result.slice(1);
