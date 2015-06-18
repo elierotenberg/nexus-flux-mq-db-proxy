@@ -32,9 +32,8 @@ class MQDBProxy {
         }
       });
     })
-    .then(() => this.pg.connectAsync())
     .then(() => this.pg.on('notification', (message) => this._handlePgNotify(message)))
-    .then(() => this.pg.queryAsync('LISTEN watchers'));
+    .then(() => this._pgQuery('LISTEN watchers'));
   }
 
   mockRedisMessage(message) {
@@ -64,7 +63,7 @@ class MQDBProxy {
         return `%L`;
       }).join(',');
       const queryFormat = pgFormat.withArray(`SELECT actions_%s(${buildEntries})`, buildParams);
-      this.pg.queryAsync(queryFormat);
+      this._pgQuery(queryFormat);
     })
     .catch((err) => {
       if(__DEV__) {
@@ -109,6 +108,20 @@ class MQDBProxy {
     else {
       this.redisPub.publish(this.updateChannel, payload);
     }
+  }
+
+  _pgQuery(...args) {
+    return new Promise((resolve, reject) =>
+      this.pg.connect((err, client, done) =>
+        err ? reject(err) : client.query(...args, (err, res) => {
+          done();
+          if(err) {
+            return reject(err);
+          }
+          resolve(res);
+        })
+      )
+    );
   }
 }
 
