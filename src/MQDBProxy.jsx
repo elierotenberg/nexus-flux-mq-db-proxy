@@ -1,4 +1,5 @@
 import pgFormat from 'pg-format';
+import Lifespan from 'lifespan';
 import http from 'http';
 import _ from 'lodash';
 import Promise from 'bluebird';
@@ -13,14 +14,26 @@ class MQDBProxy {
   redisPub = null;
   pg = null;
   actions = null;
-  channel = null;
+  actionChannel = null;
+  updateChannel = null;
   urlCache = null;
+  lifespan = null;
 
   constructor({ redisSub, redisPub, pg, channel, urlCache }, actions = {}) {
-    Object.assign(this, { redisSub, redisPub, pg, channel, urlCache, actions });
+    Object.assign(this, { redisSub, redisPub, pg, urlCache, actions });
     this.multipartPayloads = {};
     this.actionChannel = `action_${channel}`;
     this.updateChannel = `update_${channel}`;
+    this.lifespan = new Lifespan();
+
+    this.lifespan.onRelease(() => {
+      this.multipartPayloads = null;
+      this.actions = null;
+      this.redisSub.end();
+      this.redisPub.end();
+      this.pgNotifyClient.end();
+      this.pg.destroyAllNow();
+    });
   }
 
   start() {
@@ -32,9 +45,7 @@ class MQDBProxy {
         }
       });
     })
-    .then(() => this.pg.connectAsync())
-    .then(() => this.pg.on('notification', (message) => this._handlePgNotify(message)))
-    .then(() => this.pg.queryAsync('LISTEN watchers'));
+    .then(() => this._pgNotify());
   }
 
   mockRedisMessage(message) {
@@ -64,7 +75,7 @@ class MQDBProxy {
         return `%L`;
       }).join(',');
       const queryFormat = pgFormat.withArray(`SELECT actions_%s(${buildEntries})`, buildParams);
-      this.pg.queryAsync(queryFormat);
+      return this._pgQuery(queryFormat);
     })
     .catch((err) => {
       if(__DEV__) {
@@ -109,6 +120,36 @@ class MQDBProxy {
     else {
       this.redisPub.publish(this.updateChannel, payload);
     }
+  }
+
+  _pgQuery(...args) {
+    return new Promise((resolve, reject) =>
+      this.pg.connect((err, client, done) =>
+        err ? reject(err) : client.query(...args, (err, res) => {
+          done();
+          if(err) {
+            return reject(err);
+          }
+          resolve(res);
+        })
+      )
+    );
+  }
+
+  _pgNotify() {
+    return new Promise((resolve, reject) =>
+      this.pg.connect((err, client, done) => {
+        if(err) {
+          return reject(err);
+        }
+        this.pgNotifyClient = client;
+        client.on('notification', (message) => {
+          this._handlePgNotify(message)
+        })
+        client.query('LISTEN watchers');
+        resolve();
+      })
+    );
   }
 }
 
