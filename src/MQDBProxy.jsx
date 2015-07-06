@@ -56,6 +56,19 @@ class MQDBProxy {
     return this._handlePgNotify(message);
   }
 
+  _clearCache(payload) {
+    const message = JSON.parse(payload);
+    if(this.urlCache !== void 0 && this.urlCache !== null && message !== void 0 && message !== null) {
+      const options = {
+        hostname: this.urlCache,
+        method: 'PURGE',
+        path: message.n,
+      };
+      const req = http.request(options);
+      req.end();
+    }
+  }
+
   _handleRedisMessage(message) {
     return Promise.try(() => {
       const { action, query } = JSON.parse(message);
@@ -85,16 +98,6 @@ class MQDBProxy {
   }
 
   _handlePgNotify({ payload }) {
-    const message = JSON.parse(payload);
-    if(this.urlCache !== void 0 && this.urlCache !== null && message !== void 0 && message !== null) {
-      const options = {
-        hostname: this.urlCache,
-        method: 'PURGE',
-        path: message.n,
-      };
-      const req = http.request(options);
-      req.end();
-    }
     const result = REGEX.exec(payload);
     if(result) {
       const [id, part, total, data] = result.slice(1);
@@ -112,12 +115,15 @@ class MQDBProxy {
       multipartPayload.recieved = multipartPayload.recieved + 1;
       multipartPayload.parts[part - 1] = data;
       if(multipartPayload.recieved === multipartPayload.total) {
-        this.redisPub.publish(this.updateChannel, multipartPayload.parts.join(''));
+        const joinedPayload = multipartPayload.parts.join('');
+        this._clearCache(joinedPayload);
+        this.redisPub.publish(this.updateChannel, joinedPayload);
         clearTimeout(multipartPayload.timeout);
         delete this.multipartPayloads[id];
       }
     }
     else {
+      this._clearCache(payload);
       this.redisPub.publish(this.updateChannel, payload);
     }
   }
